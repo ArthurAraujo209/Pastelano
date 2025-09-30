@@ -535,8 +535,7 @@
 
 <body>
     <header>
-        <div class="logo">🥟</div>
-        <h1>Pastelano</h1>
+        <div class="logo"><img style="border-radius: 50%;" src="logo.jpg" alt=""></div>
         <p class="tagline">SEMPRE LEVANDO O SABOR ATÉ VOCÊ</p>
     </header>
 
@@ -1193,44 +1192,7 @@
                         <span class="additional-option" data-item="Carne com nata" data-price="1.00">Cebola</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="menu-item">
-                <h3>Camarão</h3>
-                <p class="description">(Creme com Camarões)</p>
-                <p class="price">R$ 13,00</p>
-                <div class="order-controls">
-                    <button class="quantity-btn minus" data-item="Camarão">-</button>
-                    <span class="quantity" data-item="Camarão">0</span>
-                    <button class="quantity-btn plus" data-item="Camarão">+</button>
-                    <button class="add-to-cart" data-item="Camarão" data-price="13.00"><i class="fas fa-cart-plus"></i>
-                        Adicionar</button>
-                </div>
-
-                <div class="additional-section">
-                    <div class="additional-title">Adicionais (R$ 2,00):</div>
-                    <div class="additional-options">
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Frango</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Carne</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Queijo</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Calabresa</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Bacon</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Ovo</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Presunto</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Cheddar</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Requeijão</span>
-                        <span class="additional-option" data-item="Camarão" data-price="2.00">Carne moída</span>
-                    </div>
-
-                    <div class="additional-title" style="margin-top: 10px;">Adicionais (R$ 1,00):</div>
-                    <div class="additional-options">
-                        <span class="additional-option" data-item="Camarão" data-price="1.00">Azeitona</span>
-                        <span class="additional-option" data-item="Camarão" data-price="1.00">Milho</span>
-                        <span class="additional-option" data-item="Camarão" data-price="1.00">Tomate</span>
-                        <span class="additional-option" data-item="Camarão" data-price="1.00">Cebola</span>
-                    </div>
-                </div>
-            </div>
+            </div>    
         </section>
 
         </section>
@@ -1357,7 +1319,7 @@
                         placeholder="Rua, número, bairro, complemento..."></textarea>
                 </div>
                 <div class="delivery-fee">
-                        <i class="fas fa-motorcycle"></i> Taxa de entrega: R$ 2,00
+                        <i class="fas fa-motorcycle"></i> Taxa de entrega: R$ 2,50
                     </div>
                     <div class="cart-total-with-delivery" id="cartTotalWithDelivery">Total com entrega: R$0,00</div>
                 <button type="submit" class="checkout-btn">Finalizar Pedido via WhatsApp</button>
@@ -1554,7 +1516,7 @@ function updateCartDisplay() {
         cartItems.appendChild(cartItem);
     });
     
-    const deliveryFee = 2.00;
+    const deliveryFee = 2.50;
     const total = subtotal + deliveryFee;
     
     cartTotal.textContent = `Subtotal: R$${subtotal.toFixed(2).replace('.', ',')}`;
@@ -1747,7 +1709,7 @@ checkoutForm.addEventListener('submit', (event) => {
         return sum + itemTotal;
     }, 0);
     
-    const deliveryFee = 2.00;
+    const deliveryFee = 2.50;
     const total = subtotal + deliveryFee;
     
     message += `\n-----------------------------------\n\nSubtotal: R$${subtotal.toFixed(2).replace('.', ',')}\nTaxa de entrega: R$${deliveryFee.toFixed(2).replace('.', ',')}\nValor total: R$${total.toFixed(2).replace('.', ',')}\nEndereço de entrega: ${deliveryAddress}\n\n-----------------------------------`;
