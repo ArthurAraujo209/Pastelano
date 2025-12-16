@@ -625,7 +625,7 @@
 
             <div class="menu-item">
                 <h3>Carne de sol</h3>
-                <p class="description">(opcional Catupiry, mussarela ou cheddar)</p>
+                <p class="description">(opcional Requeijão, mussarela ou cheddar)</p>
                 <p class="price">R$ 11,00</p>
                 <div class="order-controls">
                     <button class="quantity-btn minus" data-item="Carne-de-sol">-</button>
@@ -636,6 +636,14 @@
                 </div>
 
                 <div class="additional-section">
+
+                    <div class="additional-title">Opcionais Gratuitos (apenas 1 opção):</div>
+                    <div class="additional-options">
+                        <span class="additional-option" data-item="Carne-de-sol" data-price="0.00">Requeijão</span>
+                        <span class="additional-option" data-item="Carne-de-sol" data-price="0.00">Mussarela</span>
+                        <span class="additional-option" data-item="Carne-de-sol" data-price="0.00">Cheddar</span>
+                    </div>
+
                     <div class="additional-title">Adicionais (R$ 2,00):</div>
                     <div class="additional-options">
                         <span class="additional-option" data-item="Carne-de-sol" data-price="2.00">Frango</span>
@@ -673,6 +681,14 @@
                         Adicionar</button>
                 </div>
                 <div class="additional-section">
+
+                    <div class="additional-title">Opcionais Gratuitos (apenas 1 opção):</div>
+                    <div class="additional-options">
+                        <span class="additional-option" data-item="Carne-de-sol" data-price="0.00">Requeijão</span>
+                        <span class="additional-option" data-item="Carne-de-sol" data-price="0.00">Mussarela</span>
+                        <span class="additional-option" data-item="Carne-de-sol" data-price="0.00">Cheddar</span>
+                    </div>
+
                     <div class="additional-title">Adicionais (R$ 2,00):</div>
                     <div class="additional-options">
                         <span class="additional-option" data-item="Frango-11" data-price="2.00">Frango</span>
@@ -1685,11 +1701,24 @@
             });
         }
 
-        // Seleção de adicionais
+        // Seleção de adicionais: se a seção tiver o título 'Opcionais Gratuitos (apenas 1 opção):' permitir somente 1 seleção dentro dessa seção; caso contrário, manter toggle
         function setupAdditionalOptions() {
             document.querySelectorAll('.additional-option').forEach(option => {
                 option.addEventListener('click', function () {
-                    this.classList.toggle('selected');
+                    const parentOptions = this.closest('.additional-options');
+                    const titleEl = parentOptions ? parentOptions.previousElementSibling : null;
+                    const titleText = titleEl ? titleEl.textContent.trim() : '';
+
+                    // Se o título exato indicar opcionais gratuitos com somente 1 opção, aplicar seleção única apenas dentro desse grupo
+                    if (titleText === 'Opcionais Gratuitos (apenas 1 opção):') {
+                        const group = parentOptions.querySelectorAll('.additional-option');
+                        const alreadySelected = this.classList.contains('selected');
+                        group.forEach(o => o.classList.remove('selected'));
+                        if (!alreadySelected) this.classList.add('selected');
+                    } else {
+                        // Comportamento padrão: toggle (multi-seleção permitida)
+                        this.classList.toggle('selected');
+                    }
                 });
             });
         }
