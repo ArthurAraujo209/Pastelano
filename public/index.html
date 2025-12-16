@@ -625,7 +625,7 @@
 
             <div class="menu-item">
                 <h3>Carne de sol</h3>
-                <p class="description">(opcional Requeijão, mussarela ou cheddar)</p>
+                <p class="description">(opcional Catupiry, mussarela ou cheddar)</p>
                 <p class="price">R$ 11,00</p>
                 <div class="order-controls">
                     <button class="quantity-btn minus" data-item="Carne-de-sol">-</button>
@@ -662,7 +662,7 @@
 
             <div class="menu-item">
                 <h3>Frango</h3>
-                <p class="description">(opcional Requeijão, mussarela ou cheddar)</p>
+                <p class="description">(opcional Catupiry, mussarela ou cheddar)</p>
                 <p class="price">R$ 11,00</p>
                 <div class="order-controls">
                     <button class="quantity-btn minus" data-item="Frango-11">-</button>
@@ -1322,24 +1322,43 @@
 
             <form class="checkout-form" id="checkoutForm">
                 <div class="form-group">
-                    <label for="changeNeeded">Precisa de troco?</label>
-                    <select id="changeNeeded" required>
+                    <label for="orderType">Tipo de pedido:</label>
+                    <select id="orderType" required>
+                        <option value="entrega">Entrega</option>
+                        <option value="retirada">Retirada no local</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentMethod">Forma de pagamento:</label>
+                    <select id="paymentMethod" required>
                         <option value="">Selecione</option>
+                        <option value="cartao">Cartão de Crédito</option>
+                        <option value="pix">Pix</option>
+                        <option value="dinheiro">Dinheiro</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="changeNeededGroup" style="display:none;">
+                    <label for="changeNeeded">Precisa de troco?</label>
+                    <select id="changeNeeded">
                         <option value="nao">Não</option>
                         <option value="sim">Sim</option>
                     </select>
                 </div>
+
                 <div class="form-group" id="changeValueGroup" style="display: none;">
                     <label for="changeValue">Troco para quanto?</label>
                     <input type="number" id="changeValue" min="0" step="0.01" placeholder="Ex: 50.00">
                 </div>
-                <div class="form-group">
+
+                <div class="form-group" id="deliveryAddressGroup">
                     <label for="deliveryAddress">Endereço de entrega:</label>
-                    <textarea id="deliveryAddress" required
-                        placeholder="Rua, número, bairro, complemento..."></textarea>
+                    <textarea id="deliveryAddress" placeholder="Rua, número, bairro, complemento..."></textarea>
                 </div>
-                <div class="delivery-fee">
-                    <i class="fas fa-motorcycle"></i> Taxa de entrega: R$ 2,50
+
+                <div class="delivery-fee" id="deliveryFeeBlock">
+                    <i class="fas fa-motorcycle"></i> Taxa de entrega: R$ <span id="deliveryFeeValue">2,50</span>
                 </div>
                 <div class="cart-total-with-delivery" id="cartTotalWithDelivery">Total com entrega: R$0,00</div>
                 <button type="submit" class="checkout-btn">Finalizar Pedido via WhatsApp</button>
@@ -1540,11 +1559,18 @@
                 cartItems.appendChild(cartItem);
             });
 
-            const deliveryFee = 2.50;
+            const deliveryFee = getDeliveryFee();
             const total = subtotal + deliveryFee;
 
             cartTotal.textContent = `Subtotal: R$${subtotal.toFixed(2).replace('.', ',')}`;
-            cartTotalWithDelivery.textContent = `Total com entrega: R$${total.toFixed(2).replace('.', ',')}`;
+            if (document.getElementById('orderType') && document.getElementById('orderType').value === 'retirada') {
+                document.getElementById('deliveryFeeBlock').style.display = 'none';
+                cartTotalWithDelivery.textContent = `Total (Retirada): R$${total.toFixed(2).replace('.', ',')}`;
+            } else {
+                document.getElementById('deliveryFeeBlock').style.display = 'block';
+                document.getElementById('deliveryFeeValue').textContent = deliveryFee.toFixed(2).replace('.', ',');
+                cartTotalWithDelivery.textContent = `Total com entrega: R$${total.toFixed(2).replace('.', ',')}`;
+            }
             updateCartCount();
 
             // Adicionar event listeners para os botões dentro do carrinho
@@ -1693,24 +1719,44 @@
                 return;
             }
 
-            const deliveryAddress = document.getElementById('deliveryAddress').value.trim();
-            if (!deliveryAddress) {
-                showAlert('warning', 'Endereço Necessário', 'Por favor, informe o endereço de entrega.');
+            const orderType = document.getElementById('orderType') ? document.getElementById('orderType').value : 'entrega';
+            const paymentMethod = document.getElementById('paymentMethod') ? document.getElementById('paymentMethod').value : '';
+            if (!paymentMethod) {
+                showAlert('warning', 'Forma de pagamento', 'Por favor, selecione a forma de pagamento.');
                 return;
             }
 
-            const changeNeeded = document.getElementById('changeNeeded').value;
-            let changeValue = '';
-            if (changeNeeded === 'sim') {
-                changeValue = document.getElementById('changeValue').value.trim();
-                if (!changeValue || isNaN(changeValue) || Number(changeValue) <= 0) {
-                    showAlert('warning', 'Informe o valor do troco', 'Por favor, informe para quanto precisa de troco.');
+            let deliveryAddress = '';
+            if (orderType === 'entrega') {
+                deliveryAddress = document.getElementById('deliveryAddress').value.trim();
+                if (!deliveryAddress) {
+                    showAlert('warning', 'Endereço Necessário', 'Por favor, informe o endereço de entrega.');
                     return;
                 }
             }
 
-            // Formatar mensagem para WhatsApp
-            let message = "Olá eu queria fazer um pedido...\n\n-----------------------------------\n\n";
+            let changeMsg = '';
+            if (paymentMethod === 'dinheiro') {
+                const changeNeeded = document.getElementById('changeNeeded').value;
+                if (changeNeeded === 'sim') {
+                    const changeValue = document.getElementById('changeValue').value.trim();
+                    if (!changeValue || isNaN(changeValue) || Number(changeValue) <= 0) {
+                        showAlert('warning', 'Informe o valor do troco', 'Por favor, informe para quanto precisa de troco.');
+                        return;
+                    }
+                    changeMsg = `Precisa de troco para: R$${Number(changeValue).toFixed(2).replace('.', ',')}\n`;
+                } else {
+                    changeMsg = 'Não precisa de troco.\n';
+                }
+            }
+
+            // Formatar mensagem para WhatsApp (versão formatada)
+            let message = "🧾 *Pedido - Pastelano*\n" +
+                `📅 *Data:* ${new Date().toLocaleString()}\n` +
+                `🛒 *Tipo:* ${orderType === 'entrega' ? 'Entrega' : 'Retirada'}\n` +
+                `💳 *Pagamento:* ${paymentMethod === 'cartao' ? 'Cartão de Crédito' : paymentMethod === 'pix' ? 'Pix' : 'Dinheiro'}\n\n`;
+
+            message += "*Itens:*\n";
 
             cart.forEach(item => {
                 let itemTotal = item.price * item.quantity;
@@ -1720,41 +1766,49 @@
                     let additionalsPrice = 0;
                     item.additionals.forEach(additional => {
                         additionalsPrice += additional.price;
-                        additionalsText += `${additional.name}, `;
+                        additionalsText += `\n     • ${additional.name} (+R$${additional.price.toFixed(2).replace('.', ',')})`;
                     });
-                    additionalsText = additionalsText.slice(0, -2);
                     itemTotal += additionalsPrice * item.quantity;
 
-                    message += `(${item.quantity}x) ${item.name} - R$${itemTotal.toFixed(2).replace('.', ',')} - Adicionais: ${additionalsText}\n`;
+                    message += `• (${item.quantity}x) ${item.name} — R$${itemTotal.toFixed(2).replace('.', ',')} ${additionalsText}\n`;
                 } else {
-                    message += `(${item.quantity}x) ${item.name} - R$${itemTotal.toFixed(2).replace('.', ',')}\n`;
+                    message += `• (${item.quantity}x) ${item.name} — R$${itemTotal.toFixed(2).replace('.', ',')}\n`;
                 }
             });
+
+            message += `\n*Resumo:*\n`;
+
 
             const subtotal = cart.reduce((sum, item) => {
                 let itemTotal = item.price * item.quantity;
                 if (item.additionals && item.additionals.length > 0) {
                     let additionalsPrice = 0;
-                    item.additionals.forEach(additional => {
-                        additionalsPrice += additional.price;
-                    });
+                    item.additionals.forEach(additional => additionalsPrice += additional.price);
                     itemTotal += additionalsPrice * item.quantity;
                 }
                 return sum + itemTotal;
             }, 0);
 
-            const deliveryFee = 2.50;
+            const deliveryFee = getDeliveryFee();
             const total = subtotal + deliveryFee;
 
-            let changeMsg = '';
-            if (changeNeeded === 'sim') {
-                changeMsg = `Precisa de troco para: R$${Number(changeValue).toFixed(2).replace('.', ',')}\n`;
-            } else if (changeNeeded === 'nao') {
-                changeMsg = 'Não precisa de troco.\n';
-            }
-            message += `\n${changeMsg}`;
+            // Troco (se aplicável)
+            message += changeMsg ? `\n*Troco:* ${changeMsg.replace('\n','')}\n` : '';
 
-            message += `\n-----------------------------------\n\nSubtotal: R$${subtotal.toFixed(2).replace('.', ',')}\nTaxa de entrega: R$${deliveryFee.toFixed(2).replace('.', ',')}\nValor total: R$${total.toFixed(2).replace('.', ',')}\nEndereço de entrega: ${deliveryAddress}\n\n-----------------------------------`;
+            if (orderType === 'entrega') {
+                message += `\n*Endereço de entrega:*\n${deliveryAddress}\n`;
+                message += `*Taxa de entrega:* R$${deliveryFee.toFixed(2).replace('.', ',')}\n`;
+            } else {
+                message += `\n*Retirada no local*\n`;
+            }
+
+            message += `\n*Subtotal:* R$${subtotal.toFixed(2).replace('.', ',')}\n`;
+            message += `*Valor total:* R$${total.toFixed(2).replace('.', ',')}\n`;
+
+            const paymentMap = { cartao: 'Cartão de Crédito', pix: 'Pix', dinheiro: 'Dinheiro' };
+            message += `\n*Forma de pagamento:* ${paymentMap[paymentMethod] || paymentMethod}\n`;
+
+            message += `\nObrigado! Aguardo confirmação. ✨\n`;
 
             // Codificar a mensagem para URL
             const encodedMessage = encodeURIComponent(message);
@@ -1768,7 +1822,7 @@
             // Limpar carrinho após pedido
             cart = [];
             updateCartDisplay();
-            document.getElementById('deliveryAddress').value = '';
+            if (document.getElementById('deliveryAddress')) document.getElementById('deliveryAddress').value = '';
             cartModal.style.display = 'none';
 
             showAlert('success', 'Pedido Enviado!', 'Seu pedido foi enviado com sucesso! Aguarde a confirmação pelo WhatsApp.');
@@ -1780,6 +1834,40 @@
             setupQuantityControls();
             setupAdditionalOptions();
             setupAddToCartButtons();
+        });
+
+        function getDeliveryFee() {
+            const orderTypeEl = document.getElementById('orderType');
+            if (orderTypeEl && orderTypeEl.value === 'retirada') return 0;
+            return 2.50;
+        }
+
+        document.getElementById('orderType').addEventListener('change', function () {
+            const isRetirada = this.value === 'retirada';
+            const deliveryAddressGroup = document.getElementById('deliveryAddressGroup');
+            if (deliveryAddressGroup) {
+                deliveryAddressGroup.style.display = isRetirada ? 'none' : 'block';
+                const deliveryAddress = document.getElementById('deliveryAddress');
+                if (isRetirada) {
+                    deliveryAddress.removeAttribute('required');
+                } else {
+                    deliveryAddress.setAttribute('required', 'required');
+                }
+            }
+            updateCartDisplay();
+        });
+
+        document.getElementById('paymentMethod').addEventListener('change', function () {
+            const isDinheiro = this.value === 'dinheiro';
+            const changeNeededGroup = document.getElementById('changeNeededGroup');
+            if (changeNeededGroup) changeNeededGroup.style.display = isDinheiro ? 'block' : 'none';
+            if (!isDinheiro) {
+                document.getElementById('changeNeeded').value = 'nao';
+                document.getElementById('changeValueGroup').style.display = 'none';
+                document.getElementById('changeValue').removeAttribute('required');
+            } else {
+                document.getElementById('changeNeeded').value = 'nao';
+            }
         });
 
         document.getElementById('changeNeeded').addEventListener('change', function () {
